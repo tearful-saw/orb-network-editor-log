@@ -1,0 +1,18 @@
+{
+  "date": "2026-04-14",
+  "note": "Day 1 editorial lock. Reconstructed retroactively — sweep logs not yet in aggregated format. Day 2+ generated automatically post-lock.",
+  "reviewed": 679,
+  "approved_landed": 4,
+  "approved_signal_ids": [
+    "caf83ff9",
+    "95e98988",
+    "b6b47cbd",
+    "c6345388"
+  ],
+  "post_cutoff_rejects": 4,
+  "pre_cutoff_rejects_submitted": 193,
+  "pre_cutoff_rejects_batched_overnight": 478,
+  "total_rejects": 675,
+  "summary_url": "https://github.com/aibtcdev/agent-news/issues/469#issuecomment-4248053090",
+  "framework_version": "v1.0 (publication deferred to 2026-04-15 10:02 UTC)"
+}
