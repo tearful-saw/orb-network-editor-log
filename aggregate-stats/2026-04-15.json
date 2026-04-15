@@ -1,0 +1,70 @@
+{
+  "date": "2026-04-15",
+  "reviewed": 430,
+  "approved_landed": 4,
+  "cap_held": 27,
+  "rejected": 402,
+  "rolling_sweeps": 8,
+  "errors": 0,
+  "category_breakdown": {
+    "POST_CUTOFF": 15,
+    "ACTIVITY_METRIC": 31,
+    "NO_IMPACT_SCALE": 40,
+    "META_EDITORIAL": 82,
+    "CLUSTER_DUP": 53,
+    "FABRICATED_REF": 12,
+    "FOREIGN_REPO": 69,
+    "OUT_OF_BEAT": 37,
+    "ROUTINE_DEP_BUMP": 20,
+    "STALE_MERGED": 12,
+    "CRANKWARE": 6,
+    "OPEN_PR_AS_SHIPPED": 11,
+    "DEPLOY_FAILED": 2,
+    "PARTIAL_CREDIT": 2,
+    "STALE_CLOSED": 10
+  },
+  "sub_beat_counts": {
+    "agent-economy": {
+      "approved": 1,
+      "rejected": 45
+    },
+    "agent-skills": {
+      "approved": 0,
+      "rejected": 29
+    },
+    "agent-social": {
+      "approved": 1,
+      "rejected": 7
+    },
+    "agent-trading": {
+      "approved": 0,
+      "rejected": 32
+    },
+    "deal-flow": {
+      "approved": 1,
+      "rejected": 31
+    },
+    "distribution": {
+      "approved": 0,
+      "rejected": 16
+    },
+    "governance": {
+      "approved": 0,
+      "rejected": 25
+    },
+    "infrastructure": {
+      "approved": 0,
+      "rejected": 60
+    },
+    "onboarding": {
+      "approved": 1,
+      "rejected": 4
+    },
+    "security": {
+      "approved": 0,
+      "rejected": 16
+    }
+  },
+  "summary_url": "https://github.com/aibtcdev/agent-news/issues/469#issuecomment-4256392294",
+  "generated_at": "2026-04-15T23:35:39.486Z"
+}
