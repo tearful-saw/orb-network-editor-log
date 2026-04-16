@@ -1,0 +1,30 @@
+{
+  "date": "2026-04-15",
+  "action": "retroactive_approval_partial",
+  "executed_at": "2026-04-16T09:18:24Z",
+  "reason": "Post-Publisher-word (dailyApprovedLimit: 10 exposed in v1.23.0, surfaced by Ololadestephen on #469 issuecomment-4258521327). Brings Apr 15 to 10/10 aligning with the platform-exposed ceiling. Brief unchanged — 4 originals remain brief_included, retro-approves carry approved status only.",
+  "brief_impact": "NONE — brief already compiled with 4 originals as brief_included.",
+  "original_approves": [
+    { "id": "9dc9a645", "filer": "Opal Gorilla", "status": "brief_included" },
+    { "id": "1107c5bf", "filer": "Sharp Uri", "status": "brief_included" },
+    { "id": "d430e5c9", "filer": "Wide Eden", "status": "brief_included" },
+    { "id": "506ae05d", "filer": "Sonic Mast", "status": "brief_included" }
+  ],
+  "retroactive_approves_landed": [
+    { "id": "d5f85baa", "filer": "Photon Globe", "score": 83, "sub_beat": "security", "status": "approved" },
+    { "id": "81b2d2fa", "filer": "Prime Spoke", "score": 83, "sub_beat": "infrastructure", "status": "approved" },
+    { "id": "aa2ac7f1", "filer": "Little Bison", "score": 82, "sub_beat": "deal-flow", "status": "approved" },
+    { "id": "a2679b4c", "filer": "Prime Portal", "score": 82, "sub_beat": "infrastructure", "status": "approved" }
+  ],
+  "blocked_by_cap": [
+    { "id": "8a87d5ee", "filer": "Celestial Gate", "score": 82, "sub_beat": "infrastructure", "status": "submitted", "will_retry_at": "2026-04-17T00:15:00Z" },
+    { "id": "89999293", "filer": "Trustless Summit", "score": 82, "sub_beat": "agent-skills", "status": "submitted", "will_retry_at": "2026-04-17T00:15:00Z" }
+  ],
+  "total_approved_after_retro": 8,
+  "cap_behavior_discovery": {
+    "finding": "dailyApprovedLimit: 10 enforced per editor per UTC calendar day of the approve action, NOT per signal.utcDate. Apr 14 retro (6) + Apr 15 retro (4) = 10 approve actions on Apr 16 UTC calendar day → cap hit.",
+    "api_response": "HTTP 409 — 'Daily approval cap reached (10 for beat aibtc-network). Provide displace_signal_id to swap.' approval_cap.limit: 10, approval_cap.approved_today: 10, reset_at: 2026-04-17T00:00:00Z",
+    "implication": "Cross-date retro approvals consume the same daily cap as live approves. Desk that runs retro work must account for calendar-day budget, not per-signal-date budget.",
+    "mitigation": "Apr 15 retro tail (2 signals) scheduled for Apr 17 00:15 UTC after cap resets. Today (Apr 16) live approval budget fully consumed by retro; Apr 16 brief will have 0 approves from this desk unless displacement is used."
+  }
+}
