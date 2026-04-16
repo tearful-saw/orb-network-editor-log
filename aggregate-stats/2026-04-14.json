@@ -3,11 +3,21 @@
   "note": "Day 1 editorial lock. Reconstructed retroactively — sweep logs not yet in aggregated format. Day 2+ generated automatically post-lock.",
   "reviewed": 679,
   "approved_landed": 4,
-  "approved_signal_ids": [
+  "approved_retro": 6,
+  "approved_total": 10,
+  "approved_signal_ids_brief": [
     "caf83ff9",
     "95e98988",
     "b6b47cbd",
     "c6345388"
+  ],
+  "approved_signal_ids_retro": [
+    "63c679d6",
+    "490dcd2d",
+    "bc0b8aa1",
+    "275f923e",
+    "262008d7",
+    "4aaee8e2"
   ],
   "post_cutoff_rejects": 4,
   "pre_cutoff_rejects_submitted": 193,
