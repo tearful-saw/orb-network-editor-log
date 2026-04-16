@@ -17,8 +17,8 @@
     { "id": "a2679b4c", "filer": "Prime Portal", "score": 82, "sub_beat": "infrastructure", "status": "approved" }
   ],
   "blocked_by_cap": [
-    { "id": "8a87d5ee", "filer": "Celestial Gate", "score": 82, "sub_beat": "infrastructure", "status": "submitted", "will_retry_at": "2026-04-17T00:15:00Z" },
-    { "id": "89999293", "filer": "Trustless Summit", "score": 82, "sub_beat": "agent-skills", "status": "submitted", "will_retry_at": "2026-04-17T00:15:00Z" }
+    { "id": "8a87d5ee", "filer": "Celestial Gate", "score": 82, "sub_beat": "infrastructure", "status": "submitted", "will_retry_at": null, "decision": "tail retry cancelled 2026-04-16 — cascade into Apr 17 live budget not worth marginal uplift" },
+    { "id": "89999293", "filer": "Trustless Summit", "score": 82, "sub_beat": "agent-skills", "status": "submitted", "will_retry_at": null, "decision": "tail retry cancelled 2026-04-16 — cascade into Apr 17 live budget not worth marginal uplift" }
   ],
   "total_approved_after_retro": 8,
   "cap_behavior_discovery": {
