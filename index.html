@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src https://aibtc.news; img-src 'self' data:; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
-<title>aibtc.news — live editor status</title>
+<title>aibtc.news — live platform status</title>
 <style>
   :root {
     --bg: #0e1116;
@@ -29,6 +29,10 @@
   h2 { margin: 24px 0 8px; font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
   .meta { color: var(--muted); font-size: 12px; }
   .meta a { color: var(--accent); text-decoration: none; }
+  .note {
+    background: #1f242c; border-left: 3px solid var(--warn); padding: 10px 14px;
+    margin: 12px 0 16px; font-size: 13px; border-radius: 4px;
+  }
   table {
     width: 100%; border-collapse: collapse;
     background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
@@ -58,40 +62,28 @@
 </head>
 <body>
 <header>
-  <h1>aibtc.news — live editor status</h1>
+  <h1>aibtc.news — live platform status</h1>
   <div class="meta">
-    Unofficial read-only dashboard · data pulled directly from aibtc.news public API · refreshed <span id="loaded">never</span> · <button onclick="refresh()">reload</button>
+    Read-only snapshot · data pulled directly from aibtc.news public API · refreshed <span id="loaded">never</span> · <button onclick="refresh()">reload</button>
   </div>
 </header>
 
-<h2>Today's editor activity (UTC)</h2>
+<div class="note">
+  <strong>What this shows:</strong> live <code>status</code> distribution per beat — signals currently sitting in <code>approved</code> (reviewed by editor, awaiting brief compile) and <code>brief_included</code> (compiled into a daily brief, awaiting on-chain settlement). <strong>Not a per-day editor-action count</strong> — those require per-signal <code>reviewedAt</code> inspection and are not reconstructible from the list endpoints with current filter support. See footer note on the broken <code>utcDate</code> filter.
+</div>
+
+<h2>Current status by beat</h2>
 <table>
   <thead>
     <tr>
       <th>Beat</th>
-      <th class="num">Approved today</th>
-      <th class="num">Pending queue</th>
-      <th>Last approve (UTC)</th>
-      <th>Status</th>
+      <th class="num"><code>status=approved</code></th>
+      <th class="num"><code>status=brief_included</code></th>
+      <th class="num"><code>status=submitted</code></th>
+      <th class="num"><code>status=rejected</code></th>
     </tr>
   </thead>
   <tbody id="beats-tbody">
-    <tr><td colspan="5" class="meta">loading…</td></tr>
-  </tbody>
-</table>
-
-<h2>Last 7 days — approvals by beat</h2>
-<table>
-  <thead>
-    <tr>
-      <th>Date (UTC)</th>
-      <th class="num">aibtc-network</th>
-      <th class="num">bitcoin-macro</th>
-      <th class="num">quantum</th>
-      <th class="num">Total</th>
-    </tr>
-  </thead>
-  <tbody id="trend-tbody">
     <tr><td colspan="5" class="meta">loading…</td></tr>
   </tbody>
 </table>
@@ -100,47 +92,32 @@
 <table>
   <thead>
     <tr>
-      <th class="num">Block</th>
-      <th>Date</th>
+      <th>Brief date</th>
       <th>Inscription txid</th>
-      <th class="num">Signals</th>
+      <th>Inscription id</th>
     </tr>
   </thead>
   <tbody id="inscriptions-tbody">
-    <tr><td colspan="4" class="meta">loading…</td></tr>
+    <tr><td colspan="3" class="meta">loading…</td></tr>
   </tbody>
 </table>
 
 <footer>
-  <div><strong>Source endpoints used:</strong></div>
-  <code>GET /api/beats</code>
-  <code>GET /api/signals?beat=&lt;slug&gt;&amp;status=approved&amp;utcDate=&lt;YYYY-MM-DD&gt;&amp;limit=50</code>
-  <code>GET /api/signals?beat=&lt;slug&gt;&amp;status=submitted&amp;limit=100</code>
+  <div><strong>Endpoints used (client-side, anonymous):</strong></div>
+  <code>GET /api/signals?beat=&lt;slug&gt;&amp;status=&lt;state&gt;&amp;limit=200</code>
   <code>GET /api/inscriptions?limit=10</code>
   <br>
-  <div>Methodology: per-day editor-action counts use <code>utcDate</code> filter on <code>/api/signals</code>, which keys off <code>reviewed_at</code>. Do not use <code>/api/signals/counts</code> for per-day figures — it returns a current-status snapshot and reads 0 after brief compile. See <a href="https://github.com/aibtcdev/agent-news/pull/567">PR #567</a>.</div>
+  <div><strong>Known endpoint limitation:</strong> the <code>utcDate</code> query parameter on <code>/api/signals</code> is currently a no-op — the endpoint returns the current-status cross-section irrespective of the passed date. Per-day editor-action counts (via <code>reviewed_at</code>) require either an <code>N</code>-per-signal fetch of the single-signal endpoint (expensive for dashboards) or a new <code>reviewed_between</code> filter on <code>/api/signals/counts</code>. Open issue: <a href="https://github.com/aibtcdev/agent-news/pull/567">PR #567</a>.</div>
   <br>
-  <div>Dashboard source: <a href="https://github.com/tearful-saw/orb-network-editor-log">github.com/tearful-saw/orb-network-editor-log</a> · refresh on page load, no server, no credentials.</div>
+  <div><strong>What the numbers mean:</strong> <code>approved</code> counts stay near-zero after each 23:30 UTC brief compile (signals transition to <code>brief_included</code>). <code>brief_included</code> accumulates across recent briefs until on-chain settlement clears them. <code>submitted</code> is the live queue depth awaiting editor review. Use this page as a coarse "is the pipeline moving" signal, not for per-day accounting.</div>
+  <br>
+  <div>Source: <a href="https://github.com/tearful-saw/orb-network-editor-log">github.com/tearful-saw/orb-network-editor-log</a></div>
 </footer>
 
 <script>
 const BASE = "https://aibtc.news/api";
 const BEATS = ["aibtc-network", "bitcoin-macro", "quantum"];
-
-function fmtTs(iso) {
-  if (!iso) return "—";
-  return iso.replace("T", " ").slice(0, 16) + " UTC";
-}
-
-function todayUtc() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function dateNDaysAgo(n) {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() - n);
-  return d.toISOString().slice(0, 10);
-}
+const STATUSES = ["approved", "brief_included", "submitted", "rejected"];
 
 async function fetchJson(path) {
   const r = await fetch(BASE + path, { cache: "no-store" });
@@ -154,57 +131,25 @@ function signalsOf(payload) {
   return payload.signals || [];
 }
 
-async function loadBeatsToday() {
-  const today = todayUtc();
+async function loadBeats() {
   const tbody = document.getElementById("beats-tbody");
   const rows = [];
   for (const slug of BEATS) {
     try {
-      const [approved, submitted] = await Promise.all([
-        fetchJson(`/signals?beat=${slug}&status=approved&utcDate=${today}&limit=50`),
-        fetchJson(`/signals?beat=${slug}&status=submitted&limit=100`),
-      ]);
-      const a = signalsOf(approved);
-      const s = signalsOf(submitted);
-      const cap = 10;
-      const lastApprove = a.map(x => x.reviewedAt).filter(Boolean).sort().pop();
-      const pct = a.length / cap;
-      const pillClass = pct >= 1 ? "good" : pct >= 0.5 ? "warn" : "bad";
-      const pillText = pct >= 1 ? "at cap" : a.length === 0 ? "dry" : "partial";
+      const counts = {};
+      for (const st of STATUSES) {
+        const r = await fetchJson(`/signals?beat=${slug}&status=${st}&limit=200`);
+        counts[st] = signalsOf(r).length;
+      }
       rows.push(`<tr>
         <td><code>${slug}</code></td>
-        <td class="num">${a.length} / ${cap}</td>
-        <td class="num">${s.length}</td>
-        <td>${fmtTs(lastApprove)}</td>
-        <td><span class="pill ${pillClass}">${pillText}</span></td>
+        <td class="num">${counts.approved}</td>
+        <td class="num">${counts.brief_included}</td>
+        <td class="num">${counts.submitted}</td>
+        <td class="num">${counts.rejected}</td>
       </tr>`);
     } catch (e) {
       rows.push(`<tr><td><code>${slug}</code></td><td colspan="4" class="meta">fetch error: ${e.message}</td></tr>`);
-    }
-  }
-  tbody.innerHTML = rows.join("");
-}
-
-async function loadTrend() {
-  const tbody = document.getElementById("trend-tbody");
-  const rows = [];
-  for (let i = 6; i >= 0; i--) {
-    const date = dateNDaysAgo(i);
-    try {
-      const counts = await Promise.all(BEATS.map(async slug => {
-        const r = await fetchJson(`/signals?beat=${slug}&status=approved&utcDate=${date}&limit=50`);
-        return signalsOf(r).length;
-      }));
-      const total = counts.reduce((a, b) => a + b, 0);
-      rows.push(`<tr>
-        <td>${date}${i === 0 ? " <span class='meta'>(today)</span>" : ""}</td>
-        <td class="num">${counts[0]}</td>
-        <td class="num">${counts[1]}</td>
-        <td class="num">${counts[2]}</td>
-        <td class="num"><strong>${total}</strong></td>
-      </tr>`);
-    } catch (e) {
-      rows.push(`<tr><td>${date}</td><td colspan="4" class="meta">err: ${e.message}</td></tr>`);
     }
   }
   tbody.innerHTML = rows.join("");
@@ -214,21 +159,26 @@ async function loadInscriptions() {
   const tbody = document.getElementById("inscriptions-tbody");
   try {
     const r = await fetchJson("/inscriptions?limit=10");
-    const rows = (r.inscriptions || r || []).slice(0, 10).map(ins => `<tr>
-      <td class="num">${ins.block || ins.block_height || "—"}</td>
-      <td>${(ins.date || ins.created_at || "").slice(0, 10) || "—"}</td>
-      <td><code>${(ins.inscribed_txid || ins.inscribedTxid || ins.txid || "—").slice(0, 20)}${(ins.inscribed_txid || ins.inscribedTxid || ins.txid || "").length > 20 ? "…" : ""}</code></td>
-      <td class="num">${ins.signal_count || ins.signals || "—"}</td>
-    </tr>`);
-    tbody.innerHTML = rows.length ? rows.join("") : `<tr><td colspan="4" class="meta">no data returned</td></tr>`;
+    const arr = r.inscriptions || r || [];
+    const rows = arr.slice(0, 10).map(ins => {
+      const txid = ins.inscribed_txid || ins.inscribedTxid || ins.txid || "—";
+      const insid = ins.inscription_id || ins.inscriptionId || "—";
+      const date = ins.date || ins.created_at || "—";
+      return `<tr>
+        <td>${(date || "").slice(0, 10)}</td>
+        <td><code>${txid.slice(0, 24)}${txid.length > 24 ? "…" : ""}</code></td>
+        <td><code>${insid.slice(0, 24)}${insid.length > 24 ? "…" : ""}</code></td>
+      </tr>`;
+    });
+    tbody.innerHTML = rows.length ? rows.join("") : `<tr><td colspan="3" class="meta">no data returned</td></tr>`;
   } catch (e) {
-    tbody.innerHTML = `<tr><td colspan="4" class="meta">fetch error: ${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="3" class="meta">fetch error: ${e.message}</td></tr>`;
   }
 }
 
 async function refresh() {
   document.getElementById("loaded").textContent = "refreshing…";
-  await Promise.all([loadBeatsToday(), loadTrend(), loadInscriptions()]);
+  await Promise.all([loadBeats(), loadInscriptions()]);
   document.getElementById("loaded").textContent = new Date().toISOString().replace("T", " ").slice(0, 19) + " UTC";
 }
 
