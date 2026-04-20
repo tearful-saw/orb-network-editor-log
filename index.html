@@ -113,6 +113,8 @@
   <br>
   <div><strong>What the numbers mean:</strong> <code>approved</code> counts stay near-zero after each 23:30 UTC brief compile (signals transition to <code>brief_included</code>). <code>brief_included</code> accumulates across recent briefs until on-chain settlement clears them. <code>submitted</code> is the live queue depth awaiting editor review. Use this page as a coarse "is the pipeline moving" signal, not for per-day accounting.</div>
   <br>
+  <div><strong>Why <code>replaced=0</code> on <code>aibtc-network</code> (and non-zero on other beats):</strong> this reflects submission architecture, not editorial rigor. <code>aibtc-network</code> uses a batch-at-lock model — approves accumulate in a local priority-queue (v1.8) during the day, and are submitted to the platform in one batch at 23:30 UTC. Priority-queue reshuffling during the day (~20–40 cap-held events/day per internal sweep log) happens <em>before</em> platform submission, so the platform never sees an approve→replaced transition. Other beats submit approves live and call the platform's replace API when a higher-scoring signal displaces an already-approved one, which populates the <code>replaced</code> counter. Same editorial outcome (top-10 by score per day); different audit surface.</div>
+  <br>
   <div>Source: <a href="https://github.com/tearful-saw/orb-network-editor-log">github.com/tearful-saw/orb-network-editor-log</a></div>
 </footer>
 
