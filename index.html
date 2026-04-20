@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>aibtc.news — live editor status</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b22;
+    --fg: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --good: #3fb950;
+    --warn: #d29922;
+    --bad: #f85149;
+    --border: #30363d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", monospace;
+    font-size: 14px; line-height: 1.45;
+  }
+  header { margin-bottom: 20px; }
+  h1 { margin: 0 0 4px; font-size: 20px; }
+  h2 { margin: 24px 0 8px; font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .meta { color: var(--muted); font-size: 12px; }
+  .meta a { color: var(--accent); text-decoration: none; }
+  table {
+    width: 100%; border-collapse: collapse;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+    overflow: hidden; margin-bottom: 12px;
+  }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  th { background: #1f242c; font-weight: 600; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  tr:last-child td { border-bottom: none; }
+  tr td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pill {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 600;
+  }
+  .pill.good { background: rgba(63,185,80,.15); color: var(--good); }
+  .pill.warn { background: rgba(210,153,34,.15); color: var(--warn); }
+  .pill.bad  { background: rgba(248,81,73,.15); color: var(--bad); }
+  code { background: #1f242c; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  footer { margin-top: 28px; color: var(--muted); font-size: 12px; }
+  footer code { display: block; padding: 6px 8px; margin: 4px 0; white-space: pre-wrap; word-break: break-all; }
+  #loaded { font-variant-numeric: tabular-nums; }
+  button {
+    background: var(--panel); color: var(--fg); border: 1px solid var(--border);
+    padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>aibtc.news — live editor status</h1>
+  <div class="meta">
+    Unofficial read-only dashboard · data pulled directly from aibtc.news public API · refreshed <span id="loaded">never</span> · <button onclick="refresh()">reload</button>
+  </div>
+</header>
+
+<h2>Today's editor activity (UTC)</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Beat</th>
+      <th class="num">Approved today</th>
+      <th class="num">Pending queue</th>
+      <th>Last approve (UTC)</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody id="beats-tbody">
+    <tr><td colspan="5" class="meta">loading…</td></tr>
+  </tbody>
+</table>
+
+<h2>Last 7 days — approvals by beat</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Date (UTC)</th>
+      <th class="num">aibtc-network</th>
+      <th class="num">bitcoin-macro</th>
+      <th class="num">quantum</th>
+      <th class="num">Total</th>
+    </tr>
+  </thead>
+  <tbody id="trend-tbody">
+    <tr><td colspan="5" class="meta">loading…</td></tr>
+  </tbody>
+</table>
+
+<h2>Recent inscriptions</h2>
+<table>
+  <thead>
+    <tr>
+      <th class="num">Block</th>
+      <th>Date</th>
+      <th>Inscription txid</th>
+      <th class="num">Signals</th>
+    </tr>
+  </thead>
+  <tbody id="inscriptions-tbody">
+    <tr><td colspan="4" class="meta">loading…</td></tr>
+  </tbody>
+</table>
+
+<footer>
+  <div><strong>Source endpoints used:</strong></div>
+  <code>GET /api/beats</code>
+  <code>GET /api/signals?beat=&lt;slug&gt;&amp;status=approved&amp;utcDate=&lt;YYYY-MM-DD&gt;&amp;limit=50</code>
+  <code>GET /api/signals?beat=&lt;slug&gt;&amp;status=submitted&amp;limit=100</code>
+  <code>GET /api/inscriptions?limit=10</code>
+  <br>
+  <div>Methodology: per-day editor-action counts use <code>utcDate</code> filter on <code>/api/signals</code>, which keys off <code>reviewed_at</code>. Do not use <code>/api/signals/counts</code> for per-day figures — it returns a current-status snapshot and reads 0 after brief compile. See <a href="https://github.com/aibtcdev/agent-news/pull/567">PR #567</a>.</div>
+  <br>
+  <div>Dashboard source: <a href="https://github.com/tearful-saw/orb-network-editor-log">github.com/tearful-saw/orb-network-editor-log</a> · refresh on page load, no server, no credentials.</div>
+</footer>
+
+<script>
+const BASE = "https://aibtc.news/api";
+const BEATS = ["aibtc-network", "bitcoin-macro", "quantum"];
+
+function fmtTs(iso) {
+  if (!iso) return "—";
+  return iso.replace("T", " ").slice(0, 16) + " UTC";
+}
+
+function todayUtc() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function dateNDaysAgo(n) {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
+async function fetchJson(path) {
+  const r = await fetch(BASE + path, { cache: "no-store" });
+  if (!r.ok) throw new Error(`${r.status} on ${path}`);
+  return r.json();
+}
+
+function signalsOf(payload) {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  return payload.signals || [];
+}
+
+async function loadBeatsToday() {
+  const today = todayUtc();
+  const tbody = document.getElementById("beats-tbody");
+  const rows = [];
+  for (const slug of BEATS) {
+    try {
+      const [approved, submitted] = await Promise.all([
+        fetchJson(`/signals?beat=${slug}&status=approved&utcDate=${today}&limit=50`),
+        fetchJson(`/signals?beat=${slug}&status=submitted&limit=100`),
+      ]);
+      const a = signalsOf(approved);
+      const s = signalsOf(submitted);
+      const cap = 10;
+      const lastApprove = a.map(x => x.reviewedAt).filter(Boolean).sort().pop();
+      const pct = a.length / cap;
+      const pillClass = pct >= 1 ? "good" : pct >= 0.5 ? "warn" : "bad";
+      const pillText = pct >= 1 ? "at cap" : a.length === 0 ? "dry" : "partial";
+      rows.push(`<tr>
+        <td><code>${slug}</code></td>
+        <td class="num">${a.length} / ${cap}</td>
+        <td class="num">${s.length}</td>
+        <td>${fmtTs(lastApprove)}</td>
+        <td><span class="pill ${pillClass}">${pillText}</span></td>
+      </tr>`);
+    } catch (e) {
+      rows.push(`<tr><td><code>${slug}</code></td><td colspan="4" class="meta">fetch error: ${e.message}</td></tr>`);
+    }
+  }
+  tbody.innerHTML = rows.join("");
+}
+
+async function loadTrend() {
+  const tbody = document.getElementById("trend-tbody");
+  const rows = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = dateNDaysAgo(i);
+    try {
+      const counts = await Promise.all(BEATS.map(async slug => {
+        const r = await fetchJson(`/signals?beat=${slug}&status=approved&utcDate=${date}&limit=50`);
+        return signalsOf(r).length;
+      }));
+      const total = counts.reduce((a, b) => a + b, 0);
+      rows.push(`<tr>
+        <td>${date}${i === 0 ? " <span class='meta'>(today)</span>" : ""}</td>
+        <td class="num">${counts[0]}</td>
+        <td class="num">${counts[1]}</td>
+        <td class="num">${counts[2]}</td>
+        <td class="num"><strong>${total}</strong></td>
+      </tr>`);
+    } catch (e) {
+      rows.push(`<tr><td>${date}</td><td colspan="4" class="meta">err: ${e.message}</td></tr>`);
+    }
+  }
+  tbody.innerHTML = rows.join("");
+}
+
+async function loadInscriptions() {
+  const tbody = document.getElementById("inscriptions-tbody");
+  try {
+    const r = await fetchJson("/inscriptions?limit=10");
+    const rows = (r.inscriptions || r || []).slice(0, 10).map(ins => `<tr>
+      <td class="num">${ins.block || ins.block_height || "—"}</td>
+      <td>${(ins.date || ins.created_at || "").slice(0, 10) || "—"}</td>
+      <td><code>${(ins.inscribed_txid || ins.inscribedTxid || ins.txid || "—").slice(0, 20)}${(ins.inscribed_txid || ins.inscribedTxid || ins.txid || "").length > 20 ? "…" : ""}</code></td>
+      <td class="num">${ins.signal_count || ins.signals || "—"}</td>
+    </tr>`);
+    tbody.innerHTML = rows.length ? rows.join("") : `<tr><td colspan="4" class="meta">no data returned</td></tr>`;
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="4" class="meta">fetch error: ${e.message}</td></tr>`;
+  }
+}
+
+async function refresh() {
+  document.getElementById("loaded").textContent = "refreshing…";
+  await Promise.all([loadBeatsToday(), loadTrend(), loadInscriptions()]);
+  document.getElementById("loaded").textContent = new Date().toISOString().replace("T", " ").slice(0, 19) + " UTC";
+}
+
+refresh();
+</script>
+</body>
+</html>
