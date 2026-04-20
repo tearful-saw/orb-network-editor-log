@@ -41,7 +41,7 @@
   th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
   th { background: #1f242c; font-weight: 600; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
   tr:last-child td { border-bottom: none; }
-  tr td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
   .pill {
     display: inline-block; padding: 2px 8px; border-radius: 10px;
     font-size: 11px; font-weight: 600;
@@ -77,14 +77,16 @@
   <thead>
     <tr>
       <th>Beat</th>
-      <th class="num"><code>status=approved</code></th>
-      <th class="num"><code>status=brief_included</code></th>
-      <th class="num"><code>status=submitted</code></th>
-      <th class="num"><code>status=rejected</code></th>
+      <th class="num">approved</th>
+      <th class="num">brief_included</th>
+      <th class="num">submitted (queue)</th>
+      <th class="num">rejected (lifetime)</th>
+      <th class="num">replaced</th>
+      <th class="num">total</th>
     </tr>
   </thead>
   <tbody id="beats-tbody">
-    <tr><td colspan="5" class="meta">loading…</td></tr>
+    <tr><td colspan="7" class="meta">loading…</td></tr>
   </tbody>
 </table>
 
@@ -104,7 +106,7 @@
 
 <footer>
   <div><strong>Endpoints used (client-side, anonymous):</strong></div>
-  <code>GET /api/signals?beat=&lt;slug&gt;&amp;status=&lt;state&gt;&amp;limit=200</code>
+  <code>GET /api/signals/counts?beat=&lt;slug&gt;</code>
   <code>GET /api/inscriptions?limit=10</code>
   <br>
   <div><strong>Known endpoint limitation:</strong> the <code>utcDate</code> query parameter on <code>/api/signals</code> is currently a no-op — the endpoint returns the current-status cross-section irrespective of the passed date. Per-day editor-action counts (via <code>reviewed_at</code>) require either an <code>N</code>-per-signal fetch of the single-signal endpoint (expensive for dashboards) or a new <code>reviewed_between</code> filter on <code>/api/signals/counts</code>. Open issue: <a href="https://github.com/aibtcdev/agent-news/pull/567">PR #567</a>.</div>
@@ -117,7 +119,6 @@
 <script>
 const BASE = "https://aibtc.news/api";
 const BEATS = ["aibtc-network", "bitcoin-macro", "quantum"];
-const STATUSES = ["approved", "brief_included", "submitted", "rejected"];
 
 async function fetchJson(path) {
   const r = await fetch(BASE + path, { cache: "no-store" });
@@ -136,20 +137,18 @@ async function loadBeats() {
   const rows = [];
   for (const slug of BEATS) {
     try {
-      const counts = {};
-      for (const st of STATUSES) {
-        const r = await fetchJson(`/signals?beat=${slug}&status=${st}&limit=200`);
-        counts[st] = signalsOf(r).length;
-      }
+      const c = await fetchJson(`/signals/counts?beat=${slug}`);
       rows.push(`<tr>
         <td><code>${slug}</code></td>
-        <td class="num">${counts.approved}</td>
-        <td class="num">${counts.brief_included}</td>
-        <td class="num">${counts.submitted}</td>
-        <td class="num">${counts.rejected}</td>
+        <td class="num">${c.approved ?? 0}</td>
+        <td class="num">${c.brief_included ?? 0}</td>
+        <td class="num">${c.submitted ?? 0}</td>
+        <td class="num">${(c.rejected ?? 0).toLocaleString()}</td>
+        <td class="num">${c.replaced ?? 0}</td>
+        <td class="num">${(c.total ?? 0).toLocaleString()}</td>
       </tr>`);
     } catch (e) {
-      rows.push(`<tr><td><code>${slug}</code></td><td colspan="4" class="meta">fetch error: ${e.message}</td></tr>`);
+      rows.push(`<tr><td><code>${slug}</code></td><td colspan="6" class="meta">fetch error: ${e.message}</td></tr>`);
     }
   }
   tbody.innerHTML = rows.join("");
