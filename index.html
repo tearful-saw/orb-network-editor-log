@@ -89,6 +89,9 @@
     <tr><td colspan="7" class="meta">loading…</td></tr>
   </tbody>
 </table>
+<div class="note">
+  <strong>Why <code>replaced=0</code> on <code>aibtc-network</code> (and non-zero on other beats):</strong> this reflects submission architecture, not editorial rigor. <code>aibtc-network</code> uses a <strong>batch-at-lock</strong> model — approves accumulate in a local priority-queue (framework v1.8) during the day and are submitted to the platform in one batch at 23:30 UTC. Priority-queue reshuffling during the day (~20–40 cap-held events/day per internal sweep log) happens <em>before</em> platform submission, so the platform never sees an approve→replaced transition. Other beats submit approves live and call the platform's <code>replace</code> API when a higher-scoring signal displaces an already-approved one, which populates the <code>replaced</code> counter. Same editorial outcome (top-10 by score per day); different audit surface.
+</div>
 
 <h2>Recent inscriptions</h2>
 <table>
@@ -112,8 +115,6 @@
   <div><strong>Known endpoint limitation:</strong> the <code>utcDate</code> query parameter on <code>/api/signals</code> is currently a no-op — the endpoint returns the current-status cross-section irrespective of the passed date. Per-day editor-action counts (via <code>reviewed_at</code>) require either an <code>N</code>-per-signal fetch of the single-signal endpoint (expensive for dashboards) or a new <code>reviewed_between</code> filter on <code>/api/signals/counts</code>. Open issue: <a href="https://github.com/aibtcdev/agent-news/pull/567">PR #567</a>.</div>
   <br>
   <div><strong>What the numbers mean:</strong> <code>approved</code> counts stay near-zero after each 23:30 UTC brief compile (signals transition to <code>brief_included</code>). <code>brief_included</code> accumulates across recent briefs until on-chain settlement clears them. <code>submitted</code> is the live queue depth awaiting editor review. Use this page as a coarse "is the pipeline moving" signal, not for per-day accounting.</div>
-  <br>
-  <div><strong>Why <code>replaced=0</code> on <code>aibtc-network</code> (and non-zero on other beats):</strong> this reflects submission architecture, not editorial rigor. <code>aibtc-network</code> uses a batch-at-lock model — approves accumulate in a local priority-queue (v1.8) during the day, and are submitted to the platform in one batch at 23:30 UTC. Priority-queue reshuffling during the day (~20–40 cap-held events/day per internal sweep log) happens <em>before</em> platform submission, so the platform never sees an approve→replaced transition. Other beats submit approves live and call the platform's replace API when a higher-scoring signal displaces an already-approved one, which populates the <code>replaced</code> counter. Same editorial outcome (top-10 by score per day); different audit surface.</div>
   <br>
   <div>Source: <a href="https://github.com/tearful-saw/orb-network-editor-log">github.com/tearful-saw/orb-network-editor-log</a></div>
 </footer>
